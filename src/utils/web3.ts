@@ -119,12 +119,60 @@ export class Web3Service {
   async placeBet(marketId: number, prediction: boolean, amount: string): Promise<string> {
     if (!this.contract) throw new Error('Contract not initialized');
     
-    const tx = await this.contract.placeBet(marketId, prediction, {
-      value: ethers.parseEther(amount)
-    });
-    const receipt = await tx.wait();
+    // Validate inputs
+    const amountWei = ethers.parseEther(amount);
+    const minBet = ethers.parseEther('0.001');
+    const maxBet = ethers.parseEther('10');
     
-    return receipt.hash;
+    if (amountWei < minBet || amountWei > maxBet) {
+      throw new Error('Bet amount must be between 0.001 and 10 ETH');
+    }
+    
+    try {
+      // First check if market exists and is active
+      const market = await this.contract.getMarket(marketId);
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      if (currentTime >= Number(market.endTime)) {
+        throw new Error('Market has ended');
+      }
+      
+      if (market.resolved) {
+        throw new Error('Market is already resolved');
+      }
+      
+      // Check if user already has a bet
+      const betExists = await this.contract.getBetExists(marketId);
+      if (betExists.exists) {
+        throw new Error('You have already placed a bet on this market');
+      }
+      
+      // Estimate gas first
+      const gasEstimate = await this.contract.placeBet.estimateGas(marketId, prediction, {
+        value: amountWei
+      });
+      
+      // Execute transaction with extra gas buffer
+      const tx = await this.contract.placeBet(marketId, prediction, {
+        value: amountWei,
+        gasLimit: Math.floor(Number(gasEstimate) * 1.2) // 20% buffer
+      });
+      
+      const receipt = await tx.wait();
+      return receipt.hash;
+    } catch (error: any) {
+      console.error('PlaceBet error:', error);
+      if (error.message.includes('Market does not exist')) {
+        throw new Error('Market does not exist');
+      } else if (error.message.includes('Market has ended')) {
+        throw new Error('Market has ended');
+      } else if (error.message.includes('Already placed bet')) {
+        throw new Error('You have already placed a bet on this market');
+      } else if (error.message.includes('Invalid bet amount')) {
+        throw new Error('Invalid bet amount. Must be between 0.001 and 10 ETH');
+      }
+      throw error;
+    }
   }
 
   async resolveMarket(marketId: number, outcome: boolean): Promise<string> {

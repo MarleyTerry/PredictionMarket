@@ -5,14 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run typecheck && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "compile": "hardhat compile",
     "deploy:localhost": "hardhat run scripts/deploy.ts --network localhost",
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "init-demo": "hardhat run scripts/initialize-demo.ts --network sepolia",
     "test": "hardhat test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist artifacts cache typechain-types"
   },
   "dependencies": {
     "ethers": "^6.13.4",

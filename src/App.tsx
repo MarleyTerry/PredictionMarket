@@ -47,7 +47,7 @@ function App() {
       isConnected: false,
       chainId: null,
     },
-    markets: getPresetMarkets(),
+    markets: [],
     userBets: [],
     loading: false,
     error: null,

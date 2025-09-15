@@ -38,14 +38,37 @@ const MarketCard: React.FC<MarketCardProps> = ({ market, userAddress, web3Servic
   const handleBet = async () => {
     if (prediction === null || !betAmount) return
 
+    // Validate bet amount locally first
+    const amount = parseFloat(betAmount);
+    if (amount < 0.001 || amount > 10) {
+      onError('Bet amount must be between 0.001 and 10 ETH');
+      return;
+    }
+
     setBetting(true)
+    onError('') // Clear any previous errors
     try {
-      await web3Service.placeBet(market.id, prediction, betAmount)
-      onError('') // Clear any previous errors
-      // Note: In a real app, you'd refresh the market data here
+      const txHash = await web3Service.placeBet(market.id, prediction, betAmount)
+      console.log('Bet placed successfully:', txHash)
+      // Show success message
+      onError(`✅ Bet placed successfully! Transaction: ${txHash.slice(0, 10)}...`)
+      // Reset form
+      setPrediction(null)
+      setBetAmount('0.01')
     } catch (error: any) {
       console.error('Betting failed:', error)
-      onError(error.message || 'Failed to place bet')
+      let errorMessage = error.message || 'Failed to place bet'
+      
+      // Handle specific error cases
+      if (errorMessage.includes('user rejected')) {
+        errorMessage = 'Transaction was cancelled by user'
+      } else if (errorMessage.includes('insufficient funds')) {
+        errorMessage = 'Insufficient ETH balance'
+      } else if (errorMessage.includes('Market does not exist')) {
+        errorMessage = 'Market ID 0 does not exist. Please create a market first.'
+      }
+      
+      onError(errorMessage)
     } finally {
       setBetting(false)
     }
