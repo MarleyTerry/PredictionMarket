@@ -44,11 +44,11 @@ const CreateMarket: React.FC<CreateMarketProps> = ({ web3Service, onError, onSuc
   }
 
   const predefinedQuestions = [
-    "Will Bitcoin reach $100,000 by the end of 2024?",
+    "Will Bitcoin reach $150,000 by the end of 2026?",
     "Will Ethereum switch to proof-of-stake successfully?",
     "Will the next US presidential election have record voter turnout?",
-    "Will there be a major breakthrough in quantum computing this year?",
-    "Will any country ban cryptocurrency completely in 2024?",
+    "Will there be a major breakthrough in quantum computing by 2026?",
+    "Will any country ban cryptocurrency completely in 2026?",
   ]
 
   return (

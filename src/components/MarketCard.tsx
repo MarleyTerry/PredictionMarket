@@ -36,11 +36,11 @@ const MarketCard: React.FC<MarketCardProps> = ({ market, userAddress, web3Servic
   }
 
   const handleBet = async () => {
-    if (!prediction === null || !betAmount) return
+    if (prediction === null || !betAmount) return
 
     setBetting(true)
     try {
-      await web3Service.placeBet(market.id, prediction!, betAmount)
+      await web3Service.placeBet(market.id, prediction, betAmount)
       onError('') // Clear any previous errors
       // Note: In a real app, you'd refresh the market data here
     } catch (error: any) {

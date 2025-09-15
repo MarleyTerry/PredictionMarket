@@ -7,13 +7,47 @@ import CreateMarket from './components/CreateMarket'
 import './App.css'
 
 function App() {
+  // 预设市场数据
+  const getPresetMarkets = (): Market[] => [
+    {
+      id: 0,
+      question: "Will Bitcoin reach $150,000 by the end of 2026?",
+      endTime: new Date('2026-12-31').getTime() / 1000,
+      totalYesBets: "2.5",
+      totalNoBets: "1.8",
+      resolved: false,
+      outcome: false,
+      creator: "0x1234567890123456789012345678901234567890"
+    },
+    {
+      id: 1,
+      question: "Will the next US presidential election have record voter turnout?",
+      endTime: new Date('2026-11-30').getTime() / 1000,
+      totalYesBets: "4.2",
+      totalNoBets: "3.1",
+      resolved: false,
+      outcome: false,
+      creator: "0x2345678901234567890123456789012345678901"
+    },
+    {
+      id: 2,
+      question: "Will AI achieve human-level performance in all cognitive tasks by 2026?",
+      endTime: new Date('2026-12-31').getTime() / 1000,
+      totalYesBets: "1.5",
+      totalNoBets: "5.2",
+      resolved: false,
+      outcome: false,
+      creator: "0x3456789012345678901234567890123456789012"
+    }
+  ]
+
   const [appState, setAppState] = useState<AppState>({
     wallet: {
       address: null,
       isConnected: false,
       chainId: null,
     },
-    markets: [],
+    markets: getPresetMarkets(),
     userBets: [],
     loading: false,
     error: null,
