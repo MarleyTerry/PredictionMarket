@@ -1,0 +1,9 @@
+{
+  "address": "0xdd3e74ad708CF61B14c83cF1826b5e3816e0de69",
+  "network": {
+    "chainId": 11155111,
+    "name": "sepolia"
+  },
+  "deployer": "0x0000000000000000000000000000000000000000",
+  "deployedAt": "2024-09-15T00:00:00.000Z"
+}
