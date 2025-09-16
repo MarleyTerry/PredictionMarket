@@ -1,11 +1,11 @@
 import { ethers } from 'ethers';
 import { ContractAddresses, WalletState } from '../types';
 
-const LOCALHOST_CHAIN_ID = 31337;
-const LOCALHOST_RPC_URL = 'http://127.0.0.1:8545';
+const SEPOLIA_CHAIN_ID = 11155111;
+const SEPOLIA_RPC_URL = 'https://rpc.sepolia.org';
 
 export const CONTRACT_ADDRESSES: ContractAddresses = {
-  predictionMarket: import.meta.env.VITE_PREDICTION_MARKET_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+  predictionMarket: import.meta.env.VITE_PREDICTION_MARKET_ADDRESS || '0xdd3e74ad708CF61B14c83cF1826b5e3816e0de69',
 };
 
 export const PREDICTION_MARKET_ABI = [
@@ -47,8 +47,8 @@ export class Web3Service {
       const chainId = await window.ethereum.request({ method: 'eth_chainId' });
       const numericChainId = parseInt(chainId, 16);
 
-      if (numericChainId !== LOCALHOST_CHAIN_ID) {
-        await this.switchToLocalhost();
+      if (numericChainId !== SEPOLIA_CHAIN_ID) {
+        await this.switchToSepolia();
       }
 
       // Initialize provider and signer
@@ -63,12 +63,12 @@ export class Web3Service {
       );
 
       const address = accounts[0];
-      console.log('✅ Connected to Localhost!');
+      console.log('✅ Connected to Sepolia!');
 
       return {
         address,
         isConnected: true,
-        chainId: LOCALHOST_CHAIN_ID,
+        chainId: SEPOLIA_CHAIN_ID,
       };
     } catch (error) {
       console.error('Connection failed:', error);
@@ -76,11 +76,11 @@ export class Web3Service {
     }
   }
 
-  private async switchToLocalhost(): Promise<void> {
+  private async switchToSepolia(): Promise<void> {
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${LOCALHOST_CHAIN_ID.toString(16)}` }],
+        params: [{ chainId: `0x${SEPOLIA_CHAIN_ID.toString(16)}` }],
       });
     } catch (switchError: any) {
       // This error code indicates that the chain has not been added to MetaMask
@@ -89,15 +89,15 @@ export class Web3Service {
           method: 'wallet_addEthereumChain',
           params: [
             {
-              chainId: `0x${LOCALHOST_CHAIN_ID.toString(16)}`,
-              chainName: 'Hardhat Local Network',
+              chainId: `0x${SEPOLIA_CHAIN_ID.toString(16)}`,
+              chainName: 'Sepolia Test Network',
               nativeCurrency: {
                 name: 'ETH',
                 symbol: 'ETH',
                 decimals: 18,
               },
-              rpcUrls: [LOCALHOST_RPC_URL],
-              blockExplorerUrls: null,
+              rpcUrls: [SEPOLIA_RPC_URL],
+              blockExplorerUrls: ['https://sepolia.etherscan.io/'],
             },
           ],
         });
@@ -109,6 +109,13 @@ export class Web3Service {
 
   async createMarket(question: string, duration: number): Promise<string> {
     if (!this.contract) throw new Error('Contract not initialized');
+    
+    if (!question || question.trim().length === 0) {
+      throw new Error('Question cannot be empty');
+    }
+    if (duration <= 0) {
+      throw new Error('Duration must be positive');
+    }
     
     const tx = await this.contract.createMarket(question, duration);
     const receipt = await tx.wait();
@@ -129,44 +136,24 @@ export class Web3Service {
     }
     
     try {
-      // First check if market exists and is active
-      const market = await this.contract.getMarket(marketId);
-      const currentTime = Math.floor(Date.now() / 1000);
-      
-      if (currentTime >= Number(market.endTime)) {
-        throw new Error('Market has ended');
-      }
-      
-      if (market.resolved) {
-        throw new Error('Market is already resolved');
-      }
-      
-      // Check if user already has a bet
-      const betExists = await this.contract.getBetExists(marketId);
-      if (betExists.exists) {
-        throw new Error('You have already placed a bet on this market');
-      }
-      
-      // Execute transaction with reasonable gas limit
+      // Execute transaction directly - allow any contract interaction
       const tx = await this.contract.placeBet(marketId, prediction, {
         value: amountWei,
-        gasLimit: 200000 // Fixed reasonable gas limit
+        gasLimit: 300000
       });
       
       const receipt = await tx.wait();
       return receipt.hash;
     } catch (error: any) {
       console.error('PlaceBet error:', error);
-      if (error.message.includes('Market does not exist')) {
-        throw new Error('Market does not exist');
-      } else if (error.message.includes('Market has ended')) {
-        throw new Error('Market has ended');
-      } else if (error.message.includes('Already placed bet')) {
-        throw new Error('You have already placed a bet on this market');
-      } else if (error.message.includes('Invalid bet amount')) {
-        throw new Error('Invalid bet amount. Must be between 0.001 and 10 ETH');
+      
+      // For missing revert data, provide a user-friendly message
+      if (error.code === 'CALL_EXCEPTION' && error.message.includes('missing revert data')) {
+        throw new Error('Transaction failed - contract may not have this market or function. But transaction was attempted.');
       }
-      throw error;
+      
+      // Allow other errors to pass through with more context
+      throw new Error(`Transaction failed: ${error.message || 'Unknown error'}`);
     }
   }
 

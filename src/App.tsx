@@ -37,54 +37,50 @@ function App() {
     try {
       setAppState(prev => ({ ...prev, loading: true }))
       
-      // First try to load real markets from blockchain
-      const totalMarkets = await web3Service.getTotalMarkets()
-      const markets: Market[] = []
-
-      // Always show preset demo markets for UI testing (regardless of blockchain state)
-      markets.push(
-          {
-            id: 0,
-            question: "Will Bitcoin reach $150,000 by the end of 2026?",
-            endTime: Math.floor(new Date('2026-12-31').getTime() / 1000),
-            totalYesBets: "2.5",
-            totalNoBets: "1.8", 
-            resolved: false,
-            outcome: false,
-            creator: "0x1234567890123456789012345678901234567890"
-          },
-          {
-            id: 1,
-            question: "Will the next US presidential election have record voter turnout?",
-            endTime: Math.floor(new Date('2026-11-30').getTime() / 1000),
-            totalYesBets: "4.2",
-            totalNoBets: "3.1",
-            resolved: false,
-            outcome: false,
-            creator: "0x2345678901234567890123456789012345678901"
-          },
-          {
-            id: 2,
-            question: "Will AI achieve human-level performance in all cognitive tasks by 2026?",
-            endTime: Math.floor(new Date('2026-12-31').getTime() / 1000),
-            totalYesBets: "1.5",
-            totalNoBets: "5.2",
-            resolved: false,
-            outcome: false,
-            creator: "0x3456789012345678901234567890123456789012"
-          }
-        )
+      // Load preset markets for testing (allow real transactions)
+      const presetMarkets: Market[] = [
+        {
+          id: 0,
+          question: "Will Bitcoin reach $150,000 by the end of 2026?",
+          endTime: Math.floor(new Date('2026-12-31').getTime() / 1000),
+          totalYesBets: "1250000000000000000",
+          totalNoBets: "850000000000000000",
+          resolved: false,
+          outcome: false,
+          creator: "0x0000000000000000000000000000000000000000"
+        },
+        {
+          id: 1,
+          question: "Will the next US presidential election have record voter turnout?",
+          endTime: Math.floor(new Date('2026-11-30').getTime() / 1000),
+          totalYesBets: "2100000000000000000",
+          totalNoBets: "1800000000000000000",
+          resolved: false,
+          outcome: false,
+          creator: "0x0000000000000000000000000000000000000000"
+        },
+        {
+          id: 2,
+          question: "Will AI achieve human-level performance in all cognitive tasks by 2026?",
+          endTime: Math.floor(new Date('2026-12-31').getTime() / 1000),
+          totalYesBets: "750000000000000000",
+          totalNoBets: "1500000000000000000",
+          resolved: false,
+          outcome: false,
+          creator: "0x0000000000000000000000000000000000000000"
+        }
+      ]
 
       setAppState(prev => ({
         ...prev,
-        markets,
+        markets: presetMarkets,
         loading: false,
       }))
     } catch (error) {
       console.error('Failed to load markets:', error)
       setAppState(prev => ({
         ...prev,
-        error: 'Failed to load markets',
+        error: 'Failed to load markets. Please make sure you are connected to the correct network.',
         loading: false,
       }))
     }
