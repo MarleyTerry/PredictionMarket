@@ -1,11 +1,11 @@
 import { ethers } from 'ethers';
 import { ContractAddresses, WalletState } from '../types';
 
-const SEPOLIA_CHAIN_ID = 11155111;
-const SEPOLIA_RPC_URL = 'https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID';
+const LOCALHOST_CHAIN_ID = 31337;
+const LOCALHOST_RPC_URL = 'http://127.0.0.1:8545';
 
 export const CONTRACT_ADDRESSES: ContractAddresses = {
-  predictionMarket: import.meta.env.VITE_PREDICTION_MARKET_ADDRESS || '0xdd3e74ad708CF61B14c83cF1826b5e3816e0de69',
+  predictionMarket: import.meta.env.VITE_PREDICTION_MARKET_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
 };
 
 export const PREDICTION_MARKET_ABI = [
@@ -47,8 +47,8 @@ export class Web3Service {
       const chainId = await window.ethereum.request({ method: 'eth_chainId' });
       const numericChainId = parseInt(chainId, 16);
 
-      if (numericChainId !== SEPOLIA_CHAIN_ID) {
-        await this.switchToSepolia();
+      if (numericChainId !== LOCALHOST_CHAIN_ID) {
+        await this.switchToLocalhost();
       }
 
       // Initialize provider and signer
@@ -63,12 +63,12 @@ export class Web3Service {
       );
 
       const address = accounts[0];
-      console.log('✅ Connected to Sepolia!');
+      console.log('✅ Connected to Localhost!');
 
       return {
         address,
         isConnected: true,
-        chainId: SEPOLIA_CHAIN_ID,
+        chainId: LOCALHOST_CHAIN_ID,
       };
     } catch (error) {
       console.error('Connection failed:', error);
@@ -76,11 +76,11 @@ export class Web3Service {
     }
   }
 
-  private async switchToSepolia(): Promise<void> {
+  private async switchToLocalhost(): Promise<void> {
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${SEPOLIA_CHAIN_ID.toString(16)}` }],
+        params: [{ chainId: `0x${LOCALHOST_CHAIN_ID.toString(16)}` }],
       });
     } catch (switchError: any) {
       // This error code indicates that the chain has not been added to MetaMask
@@ -89,15 +89,15 @@ export class Web3Service {
           method: 'wallet_addEthereumChain',
           params: [
             {
-              chainId: `0x${SEPOLIA_CHAIN_ID.toString(16)}`,
-              chainName: 'Sepolia Test Network',
+              chainId: `0x${LOCALHOST_CHAIN_ID.toString(16)}`,
+              chainName: 'Hardhat Local Network',
               nativeCurrency: {
                 name: 'ETH',
                 symbol: 'ETH',
                 decimals: 18,
               },
-              rpcUrls: [SEPOLIA_RPC_URL],
-              blockExplorerUrls: ['https://sepolia.etherscan.io/'],
+              rpcUrls: [LOCALHOST_RPC_URL],
+              blockExplorerUrls: null,
             },
           ],
         });
