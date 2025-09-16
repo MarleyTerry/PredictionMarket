@@ -147,15 +147,10 @@ export class Web3Service {
         throw new Error('You have already placed a bet on this market');
       }
       
-      // Estimate gas first
-      const gasEstimate = await this.contract.placeBet.estimateGas(marketId, prediction, {
-        value: amountWei
-      });
-      
-      // Execute transaction with extra gas buffer
+      // Execute transaction with reasonable gas limit
       const tx = await this.contract.placeBet(marketId, prediction, {
         value: amountWei,
-        gasLimit: Math.floor(Number(gasEstimate) * 1.2) // 20% buffer
+        gasLimit: 200000 // Fixed reasonable gas limit
       });
       
       const receipt = await tx.wait();
